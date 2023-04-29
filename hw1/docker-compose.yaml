@@ -1,0 +1,78 @@
+version: '3'
+
+networks:
+  my-network:
+    driver: bridge
+
+services:
+  native:
+    image: &worker xraimanx/worker
+    environment: &env
+      TYPE: native
+      PORT: &serv_port 9102
+      COUNT_TESTS: 100
+      MLTCAST_GRP: &mltcast_host 224.0.0.1
+      MLTCAST_PORT: &mltcast_port 9101
+    networks:
+      - my-network
+  xml:
+    image: *worker
+    environment: 
+      <<: *env
+      TYPE: xml
+    networks:
+      - my-network
+  json:
+    image: *worker
+    environment:
+      <<: *env
+      TYPE: json
+    networks:
+      - my-network
+  proto:
+    image: *worker
+    environment:
+      <<: *env
+      TYPE: proto
+    networks:
+      - my-network
+  avro:
+    image: *worker
+    environment:
+      <<: *env
+      TYPE: avro
+    networks:
+      - my-network
+  yaml:
+    image: *worker
+    environment:
+      <<: *env
+      TYPE: yaml
+    networks:
+      - my-network
+  msgpack:
+    image: *worker
+    environment:
+      <<: *env
+      TYPE: msgpack
+    networks:
+      - my-network
+  proxy:
+    image: xraimanx/proxy
+    environment:
+      PORT: &proxy_port 2000
+      SERVERS_PORT: *serv_port
+      MLTCAST_GRP: *mltcast_host
+      MLTCAST_PORT: *mltcast_port
+    ports:
+      - 2000:2000/udp
+    depends_on:
+      - native
+      - xml
+      - json
+      - proto
+      - avro
+      - yaml
+      - msgpack
+    networks:
+      - my-network
